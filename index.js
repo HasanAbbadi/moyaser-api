@@ -44,6 +44,7 @@ app.get("/page", (req, res) => {
 
 app.get("/page/:query", (request, response) => {
   const query = request.params.query - 1;
+  const format = request.query.format;
 
   if (query > 603) response.sendStatus(404);
 
@@ -52,9 +53,13 @@ app.get("/page/:query", (request, response) => {
   pages = pages[query];
   const chapters = groupBy(pages, (a, b) => a.chapter_id === b.chapter_id);
 
-  // group words into verse array in each chapter array
+  // group words into verse/line array in each chapter array
   chapters.map((_, i) => {
-    chapters[i] = groupBy(chapters[i], (a, b) => a.verse_key === b.verse_key);
+    if (format == "line") {
+      chapters[i] = groupBy(chapters[i], (a, b) => a.line_number === b.line_number);
+    } else {
+      chapters[i] = groupBy(chapters[i], (a, b) => a.verse_key === b.verse_key);
+    }
   });
 
   // send the final array of 3 nested arrays
