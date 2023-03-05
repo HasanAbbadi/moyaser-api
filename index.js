@@ -1,5 +1,3 @@
-const fs = require("fs");
-const fetch = require("node-fetch-commonjs");
 const data = require("./all-verses.json");
 
 // To solve the cors issue
@@ -17,8 +15,9 @@ if (app.get("env") === "development") {
   app.locals.pretty = true;
 }
 
+
 app.get("/", (req, res) => {
-  res.send({
+  res.json({
     text: "[Welcome to the unofficial mushaf hefzmoyaser api! 😊]",
     routes: [
       {
@@ -60,7 +59,8 @@ app.get("/page/:query", (request, response) => {
 
   // send the final array of 3 nested arrays
   // chapters:[] -> verses:[] -> words:[] -> word:{}
-  response.send(chapters);
+  response.setHeader('Content-Type', 'application/json');
+  response.json(chapters);
 });
 
 app.get("/verse", (_, res) => {
@@ -77,7 +77,8 @@ app.get("/verse/:query", (request, response) => {
 
   // send the final object that holds the words array:
   // info:{} -> words:[] -> word:{}
-  response.send({
+  response.setHeader('Content-Type', 'application/json');
+  response.json({
     page: verses[query][0].page_number,
     chapter: verses[query][0].chapter_id,
     words: verses[query],
