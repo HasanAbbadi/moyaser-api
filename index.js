@@ -1,9 +1,10 @@
-const data = require("./all-verses.json");
+// Fetch Api
+const fetch = require('node-fetch-commonjs')
 
 // To solve the cors issue
 const cors = require("cors");
 
-// json file with the data
+// Express App
 const express = require("express");
 const app = express();
 
@@ -15,6 +16,16 @@ if (app.get("env") === "development") {
   app.locals.pretty = true;
 }
 
+async function getData(pageNum) {
+  const mainUrl = "https://api.hefzmoyaser.net/juzs";
+  if (pageNum < 600) {
+    juz = Math.ceil(pageNum / 20);
+  } else {
+    juz = Math.floor(pageNum / 20);
+  }
+  const res = await fetch(`${mainUrl}/${juz}/words`);
+  return await res.json();
+}
 
 app.get("/", (req, res) => {
   res.json({
@@ -32,31 +43,27 @@ app.get("/", (req, res) => {
   });
 });
 
-// when get request is made, alldata() is called
-app.get("/all", alldata);
-function alldata(request, response) {
-  response.send(data);
-}
-
 app.get("/page", (req, res) => {
   res.send(`TODO`);
 });
 
-app.get("/page/:query", (request, response) => {
+app.get("/page/:query", async (request, response) => {
   const query = request.params.query - 1;
   const format = request.query.format;
 
   if (query > 603) response.sendStatus(404);
 
+  const data = await getData(query);
+
   // classifying all objects and grouping them by values
-  let pages = groupBy(data, (a, b) => a.page_number === b.page_number);
-  pages = pages[query];
+  let pages = data.filter((x) => x.page_number === query + 1);
+  pages = groupBy(pages, (a, b) => a.page_number === b.page_number);
   const chapters = groupBy(pages, (a, b) => a.chapter_id === b.chapter_id);
 
   // group words into verse/line array in each chapter array
   chapters.map((_, i) => {
-    if (format == "line") {
-      chapters[i] = groupBy(chapters[i], (a, b) => a.line_number === b.line_number);
+    if (format) {
+      chapters[i] = groupBy(chapters[i], (a, b) => a.line_number === b[format]);
     } else {
       chapters[i] = groupBy(chapters[i], (a, b) => a.verse_key === b.verse_key);
     }
@@ -64,7 +71,7 @@ app.get("/page/:query", (request, response) => {
 
   // send the final array of 3 nested arrays
   // chapters:[] -> verses:[] -> words:[] -> word:{}
-  response.setHeader('Content-Type', 'application/json');
+  response.setHeader("Content-Type", "application/json");
   response.json(chapters);
 });
 
@@ -72,22 +79,16 @@ app.get("/verse", (_, res) => {
   res.send("TODO");
 });
 
-app.get("/verse/:query", (request, response) => {
+app.get("/verse/:query", async (request, response) => {
   const query = request.params.query - 1;
 
   if (query > 6235) response.sendStatus(404);
+  const mainUrl = "https://api.hefzmoyaser.net/verses";
+  const res = await fetch(`${mainUrl}/${query}/interactions`);
+  const json = await res.json();
 
-  // group all objects by verse number.
-  const verses = groupBy(data, (a, b) => a.verse_id === b.verse_id);
-
-  // send the final object that holds the words array:
-  // info:{} -> words:[] -> word:{}
-  response.setHeader('Content-Type', 'application/json');
-  response.json({
-    page: verses[query][0].page_number,
-    chapter: verses[query][0].chapter_id,
-    words: verses[query],
-  });
+  response.setHeader("Content-Type", "application/json");
+  response.json(json);
 });
 
 function groupBy(arr, cb) {

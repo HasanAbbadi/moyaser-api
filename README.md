@@ -1,5 +1,6 @@
 # Moyaser-API
-An api of extracted data from [hefzmoyaser](https://hefzmoyaser.net/mushaf)
+An endpoint to the official [hefzmoyaser](https://hefzmoyaser.net/mushaf) Api
+that provides an easier way of fetching data.
 
 ## Installation
 ```shell
@@ -14,6 +15,5 @@ the api will start at port 4500 by default.
 ## Usage:
 There are three routes to this api:
 
-* `/all`:       sends all json data from `all-verses.json`.
 * `/page`:      get all verses from specific page.
-* `/verse`:     get all words of verse using it's index in the mushaf.
+* `/verse`:     get information regarding the verse, (eg: tafseer, meanings...)
