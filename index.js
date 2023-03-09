@@ -1,5 +1,5 @@
 // Fetch Api
-const fetch = require('node-fetch-commonjs')
+const fetch = require("node-fetch-commonjs");
 
 // To solve the cors issue
 const cors = require("cors");
@@ -34,6 +34,10 @@ app.get("/", (req, res) => {
       {
         route: "/page",
         desc: "get all words in page.",
+      },
+      {
+        route: "/pages",
+        desc: "get all words in two pages by providing the number of one.",
       },
       {
         route: "/verse",
@@ -74,6 +78,35 @@ app.get("/page/:query", async (request, response) => {
   response.setHeader("Content-Type", "application/json");
   response.json(chapters);
 });
+
+app.get("/pages/:query", async (request, response) => {
+  const query = request.params.query - 1;
+  let secondPage = query + 2;
+
+  if ((query + 1) % 2 === 0) {
+    secondPage -= 3;
+  }
+
+  if (query > 603) response.sendStatus(404);
+
+  const data = await getData(query);
+
+  // classifying all objects and grouping them by values
+  let pages = data.filter((x) => x.page_number === query + 1 || x.page_number === secondPage);
+  pages = groupBy(pages, (a, b) => a.page_number === b.page_number);
+
+  // group words into verse/line array in each chapter array
+  pages.map((_, i) => {
+      pages[i] = groupBy(pages[i], (a, b) => a.line_number === b.line_number);
+  });
+
+  // send the final array of 3 nested arrays
+  // chapters:[] -> verses:[] -> words:[] -> word:{}
+  response.setHeader("Content-Type", "application/json");
+  response.json(pages);
+
+
+})
 
 app.get("/verse", (_, res) => {
   res.send("TODO");
