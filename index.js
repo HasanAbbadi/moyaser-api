@@ -80,19 +80,21 @@ app.get("/page/:query", async (request, response) => {
 });
 
 app.get("/pages/:query", async (request, response) => {
-  const query = request.params.query - 1;
-  let secondPage = query + 2;
+  const query = parseInt(request.params.query);
+  let secondPage = query + 1;
 
-  if ((query + 1) % 2 === 0) {
-    secondPage -= 3;
+  if (query % 2 === 0) {
+    secondPage -= 2;
   }
+
+  let myPages = [query, secondPage]
 
   if (query > 603) response.sendStatus(404);
 
   const data = await getData(query);
 
   // classifying all objects and grouping them by values
-  let pages = data.filter((x) => x.page_number === query + 1 || x.page_number === secondPage);
+  let pages = data.filter((x) => myPages.includes(x.page_number));
   pages = groupBy(pages, (a, b) => a.page_number === b.page_number);
 
   // group words into verse/line array in each chapter array
