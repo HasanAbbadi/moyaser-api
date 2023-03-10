@@ -23,8 +23,12 @@ async function getData(pageNum) {
   } else {
     juz = Math.floor(pageNum / 20);
   }
-  const res = await fetch(`${mainUrl}/${juz}/words`);
-  return await res.json();
+  const res = await fetch(`${mainUrl}/${juz - 1}/words`);
+  const json = await res.json()
+  const res2 = await fetch(`${mainUrl}/${juz}/words`);
+  const json2 = await res2.json()
+
+  return await json.concat(json2)
 }
 
 app.get("/", (req, res) => {
